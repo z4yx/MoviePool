@@ -7,6 +7,7 @@ import time
 from crawler import searchMovieDouban, fetchDouban, \
     searchByrResources, getMoviePopDouban, fetchIMDB
 from downloader import getDownloadStatusEach, startNewDownload, getOfflineDownloadPath
+from webserver import app
 
 
 DB = "MovieDB"
@@ -22,11 +23,14 @@ TIME_OUT = 24 * 3600
 pop = None
 pop_time = 0
 
+def get_db_client():
+    return MongoClient(app.config['DB_URI'])
+
 def search(query, start=0, count=5):
     data = searchMovieDouban(query, start, count)
     if data is None:
         return None
-    coll = MongoClient()[DB][DoubanBasic]
+    coll = get_db_client()[DB][DoubanBasic]
     for item in data:
         result = coll.update_one({'id': item['id']}, {'$set': item}, upsert=True)
         logging.info(result)
@@ -40,7 +44,7 @@ def getpop(count=8):
     data = getMoviePopDouban(count)
     if data is None:
         return None
-    coll = MongoClient()[DB][DoubanBasic]
+    coll = get_db_client()[DB][DoubanBasic]
     for item in data:
         result = coll.update_one({'id': item['id']}, {'$set': item}, upsert=True)
         logging.info(result)
@@ -50,7 +54,7 @@ def getpop(count=8):
 
 
 def getDoubanBasic(doubanID):
-    coll = MongoClient()[DB][DoubanBasic]
+    coll = get_db_client()[DB][DoubanBasic]
     cur = coll.find({'id': doubanID})
     if cur.count() > 0:
         return cur[0]
@@ -58,8 +62,8 @@ def getDoubanBasic(doubanID):
         return None
 
 def getDoubanAdvance(doubanID):
-    coll = MongoClient()[DB][DoubanAdvance]
-    coll2 = MongoClient()[DB][IDCvt]
+    coll = get_db_client()[DB][DoubanAdvance]
+    coll2 = get_db_client()[DB][IDCvt]
     cur = coll.find({'id': doubanID})
     data = None
     if cur.count() > 0:
@@ -78,7 +82,7 @@ def getDoubanAdvance(doubanID):
     return data
 
 def getIMDBBasic(IMDBID):
-    coll = MongoClient()[DB][IMDBBasic]
+    coll = get_db_client()[DB][IMDBBasic]
     cur = coll.find({'IMDBid': IMDBID})
     data = None
     if cur.count() > 0:
@@ -100,7 +104,7 @@ def getDoubanID(IMDBID):
     pass
 
 def getResourcesHash(r):
-    coll = MongoClient()[DB][DownloadBasic]
+    coll = get_db_client()[DB][DownloadBasic]
     for item in r:
         cur = coll.find({'byr_id': item['download_id']})
         if cur.count() > 0:
@@ -116,7 +120,7 @@ def getMovieResources(IMDBid):
     return r
 
 def cacheResources(resId):
-    coll = MongoClient()[DB][DownloadBasic]
+    coll = get_db_client()[DB][DownloadBasic]
     cur = coll.find({'byr_id': resId})
     if cur.count() > 0:
         return {'reason': 1}
@@ -125,13 +129,13 @@ def cacheResources(resId):
         if not ret:
             return {'reason': 2}
         else:
-            coll = MongoClient()[DB][DownloadBasic]
+            coll = get_db_client()[DB][DownloadBasic]
             data = {'byr_id': resId,'bt_hash': h}
             coll.update_one({'byr_id': resId}, {'$set': data}, upsert=True)
             return {'reason': 0}
 
 def getProgress(resId):
-    coll = MongoClient()[DB][DownloadBasic]
+    coll = get_db_client()[DB][DownloadBasic]
     cur = coll.find({'byr_id': resId})
     if cur.count() > 0:
         item = {'download_id': resId}
@@ -142,7 +146,7 @@ def getProgress(resId):
         return {'reason': 1}
 
 def getDownloaded(resId):
-    coll = MongoClient()[DB][DownloadBasic]
+    coll = get_db_client()[DB][DownloadBasic]
     cur = coll.find({'byr_id': resId})
     if cur.count() > 0:
         p = getOfflineDownloadPath(cur[0]['bt_hash'])

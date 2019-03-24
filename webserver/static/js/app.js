@@ -1,6 +1,6 @@
 var indexApp = angular.module('indexApp', []);
 indexApp.controller('indexController', function indexController($scope, $http) {
-    $http.get("/api/pop").success(function(data) {
+    $http.get("api/pop").success(function(data) {
         data.forEach(function(entry) {
             if (entry.title.length > 20) {
                 entry.title = entry.title.substr(0, 20) + "...";
@@ -25,7 +25,7 @@ indexApp.filter('reshape', function () {
 
 var searchApp = angular.module('searchApp', []);
 searchApp.controller('searchController', function searchController($scope, $http) {
-    $http.get("/api/search" + location.search).success(function(data) {
+    $http.get("api/search" + location.search).success(function(data) {
         data.forEach(function(entry) {
             if (entry.title.length > 20) {
                 entry.title = entry.title.substr(0, 20) + "...";
@@ -51,7 +51,7 @@ var movieApp = angular.module('movieApp', []);
 
 movieApp.controller('movieController', function movieController($scope, $http) {
     function reload_progress(download_id) {
-        $http.get('/api/progress/'+download_id).success(function(data){
+        $http.get('../api/progress/'+download_id).success(function(data){
             console.log(data)
             if(data.reason===0 && $scope.resources.list){
                 for (var i = $scope.resources.list.length - 1; i >= 0; i--) {
@@ -67,7 +67,7 @@ movieApp.controller('movieController', function movieController($scope, $http) {
     $scope.download = function(item){
         console.log(item)
         if(item.finished){
-            $http.get('/api/download/'+item.download_id).success(function(data){
+            $http.get('../api/download/'+item.download_id).success(function(data){
                 console.log(data)
                 if(data.reason === 0){
                     // $('#iframe_for_download').prop('src', data.path);
@@ -77,7 +77,7 @@ movieApp.controller('movieController', function movieController($scope, $http) {
         }else if(item.progress >= 0){
             // TODO: 注册完成通知
         }else{
-            $http.get('/api/cache/'+item.download_id).success(function(data){
+            $http.get('../api/cache/'+item.download_id).success(function(data){
                 console.log(data)
                 if(data.reason === 0){
                     reload_progress(item.download_id);
@@ -86,7 +86,8 @@ movieApp.controller('movieController', function movieController($scope, $http) {
             });
         }
     };
-    $http.get("/api/movie/" + location.pathname.split('/')[2]).success(function(data){
+    var pathSegs = location.pathname.split('/');
+    $http.get("../api/movie/" + pathSegs[pathSegs.length-1]).success(function(data){
       data.castslist = Array();
       data.casts.forEach(function(entry){
         data.castslist.push(entry.name);
@@ -96,14 +97,14 @@ movieApp.controller('movieController', function movieController($scope, $http) {
         data.directorslist.push(entry.name);
       });
       $scope.movie=data;
-      $http.get("/api/imdb/" + data.IMDB).success(function(data){
+      $http.get("../api/imdb/" + data.IMDB).success(function(data){
         $scope.imdb=data;
         console.log(data);
       });
     })
     $scope.$watch('movie',function(newValue,oldValue){
         if(newValue && newValue.IMDB){
-            $http.get("/api/resources/"+newValue.IMDB).success(function(data){
+            $http.get("../api/resources/"+newValue.IMDB).success(function(data){
                 $scope.resources.list = data;
                 $scope.resources.ready=true;
             });
