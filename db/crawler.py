@@ -10,8 +10,8 @@ import re
 from webserver import app
 
 URL = 'https://api.douban.com'
-BYR_SEARCH_URL = 'http://bt.byr.cn/torrents.php'
-BYR_DOWNLOAD_URL = 'http://bt.byr.cn/download.php'
+BYR_SEARCH_URL = 'https://bt.byr.cn/torrents.php'
+BYR_DOWNLOAD_URL = 'https://bt.byr.cn/download.php'
 
 def searchByrResources(imdbId):
     try:
