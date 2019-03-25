@@ -70,7 +70,7 @@
       <div class="row" ng-repeat="row in (results | reshape:4)">
         <div class="col-md-3" ng-repeat="item in row">
           <a href='movie/{{item.id}}'>
-            <img src="{{item.images.large}}" style="height:100%;width:100%;"/>
+            <img ng-src="api/image-cache?url={{item.images.large | urlencode}}" style="height:100%;width:100%;"/>
             <h5>{{item.title}}</h5>
           </a>
         </div>

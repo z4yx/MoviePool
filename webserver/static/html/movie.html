@@ -74,7 +74,7 @@
         <div class="row">
           <div class="col-md-3">
             <a href="{{movie.images.large}}">
-            <img src="{{movie.images.large}}" style="width:100%"/>
+            <img ng-src="../api/image-cache?url={{movie.images.large | urlencode}}" style="width:100%"/>
             </a>
           </div>
           <div class="col-md-6">

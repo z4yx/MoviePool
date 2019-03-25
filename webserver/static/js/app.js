@@ -1,4 +1,9 @@
-var indexApp = angular.module('indexApp', []);
+var commonMod = angular.module('commonMod', []);
+commonMod.filter('urlencode', function() {
+  return window.encodeURIComponent;
+});
+
+var indexApp = angular.module('indexApp', ['commonMod']);
 indexApp.controller('indexController', function indexController($scope, $http) {
     $http.get("api/pop").success(function(data) {
         data.forEach(function(entry) {
@@ -23,7 +28,7 @@ indexApp.filter('reshape', function () {
 });
 
 
-var searchApp = angular.module('searchApp', []);
+var searchApp = angular.module('searchApp', ['commonMod']);
 searchApp.controller('searchController', function searchController($scope, $http) {
     $http.get("api/search" + location.search).success(function(data) {
         data.forEach(function(entry) {
@@ -47,7 +52,7 @@ searchApp.filter('reshape', function () {
     };
 });
 
-var movieApp = angular.module('movieApp', []);
+var movieApp = angular.module('movieApp', ['commonMod']);
 
 movieApp.controller('movieController', function movieController($scope, $http) {
     function reload_progress(download_id) {

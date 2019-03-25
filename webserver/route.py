@@ -1,4 +1,6 @@
-from flask import render_template, request
+from flask import render_template, Response, request
+from urllib import unquote
+import requests
 import db.db as db
 import logging
 import json
@@ -16,6 +18,23 @@ def index():
 @app.route('/movie/<id>')
 def movie(id):
     return app.send_static_file('html/movie.html')
+
+@app.route('/api/image-cache')
+def image_cache_api():
+    uri = request.args.get('url')
+    resp = requests.request(
+        method=request.method,
+        url=unquote(uri),
+        allow_redirects=True)
+    #print(unquote(uri))
+
+    excluded_headers = ['content-encoding', 'content-length', 'transfer-encoding', 'connection']
+    headers = [(name, value) for (name, value) in resp.raw.headers.items()
+               if name.lower() not in excluded_headers]
+
+    response = Response(resp.content, resp.status_code, headers)
+    return response
+
 
 @app.route('/api/search')
 def search_api():
