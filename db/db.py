@@ -33,7 +33,7 @@ def search(query, start=0, count=5):
     coll = get_db_client()[DB][DoubanBasic]
     for item in data:
         result = coll.update_one({'id': item['id']}, {'$set': item}, upsert=True)
-        logging.info(result)
+        logging.info('updating '+item['id'])
     return data
 
 def getpop(count=8):
@@ -56,6 +56,7 @@ def getpop(count=8):
 def getDoubanBasic(doubanID):
     coll = get_db_client()[DB][DoubanBasic]
     cur = coll.find({'id': doubanID})
+    logging.debug(doubanID+' '+str(cur.count()))
     if cur.count() > 0:
         return cur[0]
     else:
@@ -112,8 +113,11 @@ def getResourcesHash(r):
         else:
             item['bt_hash'] = None
 
-def getMovieResources(IMDBid):
-    r = searchByrResources(IMDBid)
+def getMovieResources(doubanId):
+    douban = getDoubanAdvance(doubanId)
+    if douban is None:
+        return []
+    r = searchByrResources(douban['IMDB'], douban['title'])
     getResourcesHash(r)
     getDownloadStatusEach(r)
 

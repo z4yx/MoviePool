@@ -13,36 +13,42 @@ URL = 'https://api.douban.com'
 BYR_SEARCH_URL = 'https://bt.byr.cn/torrents.php'
 BYR_DOWNLOAD_URL = 'https://bt.byr.cn/download.php'
 
-def searchByrResources(imdbId):
-    try:
-        arg = {'search': imdbId, 'search_area': 4}
-        r = requests.get(BYR_SEARCH_URL, params=arg, headers={'cookie': app.config['BYR_COOKIE']}, timeout=3)
-        assert r.status_code == 200
+def searchByrResources(imdbId, name=''):
+    def searchWithKeyword(kw):
+        try:
+            arg = {'search': kw, 'search_area': 0}
+            r = requests.get(BYR_SEARCH_URL, params=arg, headers={'cookie': app.config['BYR_COOKIE']}, timeout=3)
+            assert r.status_code == 200
 
-        result = []
-        soup = BeautifulSoup(r.text, "html.parser")
-        for row in soup.select('table.torrents tr'):
-            cols = row.find_all('td', class_='rowfollow')
-            if not len(cols) or len(cols)<9:
-                continue
-            download_id = urlparse.parse_qs(urlparse.urlparse(cols[1].find_all('a')[0].get('href')).query)['id'][0]
-            name = cols[1].select('a b')[0].contents[0]
-            size = ''.join(filter(lambda s:isinstance(s, unicode), cols[4].contents))
-            up = (cols[5].find_all('font') or cols[5].find_all('a') or cols[5].find_all('span'))[0].contents[0]
-            down = (cols[6].find_all('a') or [cols[6]])[0].contents[0]
-            result.append({
-                'download_id': download_id,
-                'name': name,
-                'size': size,
-                'uploading': up,
-                'downloading': down
-            })
+            result = []
+            soup = BeautifulSoup(r.text, "html.parser")
+            for row in soup.select('table.torrents tr'):
+                cols = row.find_all('td', class_='rowfollow')
+                if not len(cols) or len(cols)<9:
+                    continue
+                download_id = urlparse.parse_qs(urlparse.urlparse(cols[1].find_all('a')[0].get('href')).query)['id'][0]
+                name = cols[1].select('a b')[0].contents[0]
+                size = ''.join(filter(lambda s:isinstance(s, unicode), cols[4].contents))
+                up = (cols[5].find_all('font') or cols[5].find_all('a') or cols[5].find_all('span'))[0].contents[0]
+                down = (cols[6].find_all('a') or [cols[6]])[0].contents[0]
+                result.append({
+                    'download_id': download_id,
+                    'name': name,
+                    'size': size,
+                    'uploading': up,
+                    'downloading': down
+                })
 
-        return result
-    except Exception, e:
-        logging.warning('searchByrResources {} {}'.format(imdbId, e))
-        traceback.print_exc()
-    return []
+            return result
+        except Exception, e:
+            logging.warning('searchByrResources {} {}'.format(kw, e))
+            traceback.print_exc()
+    byId = searchWithKeyword(imdbId)
+    byName = searchWithKeyword(name) if name else []
+    #print(byName)
+    byId.extend(byName)
+    uniqueMap = {x['download_id']: x for x in byId}
+    return list(uniqueMap.values())
 
 def getByrTorrent(ByrId):
     try:

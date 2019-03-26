@@ -108,8 +108,8 @@ movieApp.controller('movieController', function movieController($scope, $http) {
       });
     })
     $scope.$watch('movie',function(newValue,oldValue){
-        if(newValue && newValue.IMDB){
-            $http.get("../api/resources/"+newValue.IMDB).success(function(data){
+        if(newValue && newValue.id){
+            $http.get("../api/resources/"+newValue.id).success(function(data){
                 $scope.resources.list = data;
                 $scope.resources.ready=true;
             });
